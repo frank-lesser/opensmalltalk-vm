@@ -2055,8 +2055,8 @@ static int x2sqKeyPlain(XKeyEvent *xevt, KeySym *symbolic)
 	if (!i) fprintf(stderr, " [");
 	fprintf(stderr, "%d(%02x)%c", buf[i], buf[i], i + 1 < nConv ? ',' : ']');
   }
-  fprintf(stderr, " %d(%02x) -> %d(%02x) (keysym %p %s)\n",
-	 xevt->keycode, xevt->keycode, charCode, charCode, symbolic, nameForKeycode(*symbolic));
+  fprintf(stderr, " %d(%02x) -> %d(%02x) (keysym %04x %s)\n",
+	 xevt->keycode, xevt->keycode, charCode, charCode, *symbolic, nameForKeycode(*symbolic));
 #endif
   if (!nConv && (charCode= translateCode(*symbolic, &modifierState, xevt)) < 0)
       return -1;	/* unknown key */
@@ -4280,11 +4280,10 @@ void initWindow(char *displayName)
   XRectangle windowBounds= { 0, 0, 640, 480 };  /* default window bounds */
   int right, bottom;
 
-#ifdef PharoVM
-  // Some libraries require Xlib multi-threading support. When using
-  // multi-threading XInitThreads() has to be first Xlib function called.
+  // Some libraries such as OpenGL and Vulkan drivers, require Xlib
+  // multi-threading support. When using multi-threading XInitThreads() has to
+  // be first Xlib function called.
   XInitThreads();
-#endif
 
   XSetErrorHandler(xError);
 
