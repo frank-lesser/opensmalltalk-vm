@@ -11,7 +11,7 @@
 *    1) When using this module the virtual machine MUST NOT be compiled
 *       with Unicode support.
 *****************************************************************************/
-#include <windows.h>
+#include <Windows.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,7 +100,7 @@ extern void printPhaseTime(int);
 LONG CALLBACK sqExceptionFilter(LPEXCEPTION_POINTERS exp);
 
 /* Import from sqWin32Window.c */
-char * GetAttributeString(int id);
+char * GetAttributeString(sqInt id);
 void ShowSplashScreen(void);
 void HideSplashScreen(void);
 
@@ -1858,6 +1858,8 @@ main(int argc, char *argv[])
 
   SQ_LAUNCH_DROP = RegisterWindowMessage(TEXT("SQUEAK_LAUNCH_DROP"));
 
+  vmOptions = calloc(argc + 1, sizeof(char *));
+  imageOptions = calloc(argc + 1, sizeof(char *));
   /* start the non-service version */
   sqMain(argc, argv);
   return 0;
@@ -1985,10 +1987,6 @@ parseVMArgument(int argc, char *argv[])
 		extern sqInt desiredNumStackPages;
 		desiredNumStackPages = atoi(argv[0]+strlen(VMOPTION("stackpages:")));	 
 		return 1; }
-	else if (!strcmp(argv[0], VMOPTION("checkpluginwrites"))) {
-		extern sqInt checkAllocFiller;
-		checkAllocFiller = 1;
-		return 1; }
 	else if (!strcmp(argv[0], VMOPTION("noheartbeat"))) {
 		extern sqInt suppressHeartbeatFlag;
 		suppressHeartbeatFlag = 1;
@@ -2029,14 +2027,6 @@ parseVMArgument(int argc, char *argv[])
 	else if (!strcmp(argv[0], VMOPTION("tracestores"))) {
 		extern sqInt traceStores;
 		traceStores = 1;
-		return 1; }
-	else if (argc > 1 && !strcmp(argv[0], VMOPTION("dpcso"))) {
-		extern usqIntptr_t debugPrimCallStackOffset;
-		debugPrimCallStackOffset = (usqIntptr_t) strtobkm(argv[1]);
-		return 2; }
-	else if (!strcmp(argv[0], VMOPTION("dpcso:"))) {
-		extern usqIntptr_t debugPrimCallStackOffset;
-		debugPrimCallStackOffset = strtobkm(argv[0]+strlen(VMOPTION("dpcso:")));
 		return 1; }
 	else if (argc > 1 && !strcmp(argv[0], VMOPTION("cogmaxlits"))) {
 		extern sqInt maxLiteralCountForCompile;
@@ -2218,7 +2208,10 @@ parseGenericArgs(int argc, char *argv[])
 		case IMAGE_SUBSYSTEM_WINDOWS_CE_GUI:
 			return 1; /* ok not to have an image since user can choose one. */
 		default:
-			return 0;
+			/* It is OK to run the console VM provided an image has been
+			 * provided by the ini file.
+			 */
+			return imageName != 0;
 		}
 
 	if (*imageName == 0) { /* only try to use image name if none is provided */
@@ -2264,26 +2257,19 @@ parseArguments(int argc, char *argv[])
  */
 # if defined(_M_IX86) || defined(_M_I386) || defined(_X86_) || defined(i386) || defined(__i386) || defined(__i386__) \
 	|| defined(x86_64) || defined(__x86_64) || defined(__x86_64__) || defined(__amd64) || defined(__amd64__) || defined(x64) || defined(_M_AMD64) || defined(_M_X64) || defined(_M_IA64)
-/*
- * Cog has already captured CStackPointer  before calling this routine.  Record
- * the original value, capture the pointers again and determine if CFramePointer
- * lies between the two stack pointers and hence is likely in use.  This is
- * necessary since optimizing C compilers for x86 may use %ebp as a general-
- * purpose register, in which case it must not be captured.
- */
 int
-isCFramePointerInUse()
+isCFramePointerInUse(usqIntptr_t *cFrmPtrPtr, usqIntptr_t *cStkPtrPtr)
 {
-	extern usqIntptr_t CStackPointer, CFramePointer;
 	extern void (*ceCaptureCStackPointers)(void);
-	usqIntptr_t currentCSP = CStackPointer;
+	usqIntptr_t currentCSP = *cStkPtrPtr;
 
-	currentCSP = CStackPointer;
 	ceCaptureCStackPointers();
-	assert(CStackPointer < currentCSP);
-	return CFramePointer >= CStackPointer && CFramePointer <= currentCSP;
+	assert(*cStkPtrPtr < currentCSP);
+	return *cFrmPtrPtr >= *cStkPtrPtr && *cFrmPtrPtr <= currentCSP;
 }
-# endif /* defined(i386) || defined(__i386) || defined(__i386__) */
+# else
+#	error please provide a deifnition of isCFramePointerInUse for this platform
+# endif /* defined(_M_IX86) et al */
 
 /* Answer an approximation of the size of the redzone (if any).  Do so by
  * sending a signal to the process and computing the difference between the

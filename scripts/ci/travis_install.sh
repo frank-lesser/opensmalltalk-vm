@@ -15,8 +15,15 @@ if [[ "${ARCH}" = "linux64x64" ]]; then
             libpango1.0-dev \
             libpulse-dev \
             libaudio-dev \
+            libsndio-dev \
             gcc-multilib \
-            uuid-dev
+            uuid-dev \
+            libglu1-mesa-dev \
+            automake \
+            autoconf \
+            libtool \
+            curl \
+            cmake
 elif [[ "${ARCH}" = "linux32x86" ]]; then
     sudo apt-get update -y
     sudo apt-get remove -q -y gvfs-daemons
@@ -37,6 +44,7 @@ elif [[ "${ARCH}" = "linux32x86" ]]; then
             libxext-dev:i386 \
             libxrender-dev:i386 \
             libglapi-mesa:i386 \
+            libcairo2-dev:i386 \
             libpango1.0-dev:i386 \
               libxft-dev:i386 \
               gir1.2-pango-1.0:i386 \
@@ -45,6 +53,7 @@ elif [[ "${ARCH}" = "linux32x86" ]]; then
               libgirepository-1.0-1:i386 \
             libpulse-dev:i386 \
             libaudio-dev:i386 \
+            libsndio-dev:i386 \
             gcc-multilib \
             uuid-dev:i386 \
             libcurl4-openssl-dev:i386 \

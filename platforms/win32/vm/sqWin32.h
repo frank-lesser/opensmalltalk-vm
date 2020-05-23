@@ -25,79 +25,6 @@
 
 #define NO_TABLET
 
-
-#ifdef _WIN32_WCE
-/*************************************************************/
-/*                          Windows CE                       */
-/*************************************************************/
-#ifndef WIN32_FILE_SUPPORT
-# error "You must define WIN32_FILE_SUPPORT for compiling on WINCE"
-#endif
-
-/* OS/Processor definitions */
-#define WIN32_NAME "Win32"
-#define WIN32_OS_NAME "CE"
-#if defined (_SH3_)
-#	define WIN32_PROCESSOR_NAME "SH3"
-#elif defined(_MIPS_)
-#	define WIN32_PROCESSOR_NAME "MIPS"
-#else
-#	error "Unknown Windows CE configuration"
-#endif
-
-/* Remove subsystems we don't support on CE based devices */
-#define NO_JOYSTICK
-#define NO_PRINTER
-#define NO_MIDI
-#define WCE_PREFERENCES
-#define NO_ASYNC_FILES
-#define NO_PLUGIN_SUPPORT
-
-#define USE_DIB_SECTIONS
-
-#define GMEM_MOVEABLE 0
-#define GMEM_DDESHARE 0
-#define GMEM_ZEROINIT 0
-
-#define MB_TASKMODAL	0
-#define CS_OWNDC	0
-#define WS_EX_APPWINDOW	WS_VISIBLE
-#define WS_OVERLAPPEDWINDOW	WS_VISIBLE
-#define SW_SHOWMAXIMIZED SW_SHOW
-#define SW_RESTORE SW_SHOW
-
-#ifndef SEEK_SET
-#	define SEEK_SET	0
-#endif
-#ifndef SEEK_CUR
-#	define SEEK_CUR	1
-#endif
-#ifndef SEEK_END
-#	define SEEK_END	2
-#endif
-
-#define EXCEPTION_ACCESS_VIOLATION	STATUS_ACCESS_VIOLATION
-
-#define LPEXCEPTION_POINTERS EXCEPTION_POINTERS*
-
-#define MF_DISABLED MF_GRAYED
-
-#ifndef FPOS_T_DEFINED
-	typedef unsigned long fpos_t; /* Could be 64 bits for Win32 */
-#	define FPOS_T_DEFINED
-#endif
-
-#define isdigit(src) ((src <= '9') && (src >= '0'))
-#define MoveMemory(_Destination, _Source, _Length) memmove(_Destination, _Source, _Length)
-#define ZeroMemory(_Destination, _Length) memset(_Destination, 0, _Length)
-#define timeGetTime() 0 // no multimedia timers
-
-
-#else /* !(_WIN32_WCE) */
-/*************************************************************/
-/*                      Windows 95/98/NT/Blablabla           */
-/*************************************************************/
-
 /* #define USE_DIRECT_X */
 #define NO_DIRECTINPUT
 
@@ -139,8 +66,6 @@
 #	define warnPrintfW wprintf
 #endif /* _M_X64 & al */
 
-#endif /* (_WIN32_WCE) */
-
 /* Experimental */
 #ifdef MINIMAL
   /* The hardcoded defs:
@@ -150,7 +75,6 @@
 #	define NO_SERVICE
 #	define NO_PREFERENCES
 #	define NO_PRINTER
-#	define NO_WHEEL_MOUSE
   /* Use stub definitions from sqWin32Stubs.c */
 #	define NO_SOUND
 #	define NO_SERIAL_PORT
@@ -172,17 +96,17 @@ typedef int (*messageHook)(void *, unsigned int, unsigned int, long);
 /********************************************************/
 /* Several setup functions                              */
 /********************************************************/
-void SetupFilesAndPath();
-void SetupWindows();
-void SetupPixmaps();
-void SetupPrinter();
-void SetupMIDI();
+void SetupFilesAndPath(void);
+void SetupWindows(void);
+void SetupPixmaps(void);
+void SetupPrinter(void);
+void SetupMIDI(void);
 
 /********************************************************/
 /* Startup helper functions                             */
 /********************************************************/
-int findImageFile();
-int openImageFile();
+int findImageFile(void);
+int openImageFile(void);
 
 /********************************************************/
 /* external SYNCHRONIZED signaling of semaphores        */
@@ -198,7 +122,7 @@ char *GetVMOption(int id);
 /********************************************************/
 /* Misc functions                                       */
 /********************************************************/
-void SetWindowSize();
+void SetWindowSize(void);
 int printUsage(int level);
 
 /********************************************************/
@@ -270,17 +194,17 @@ extern char  squeakIniNameA[];   /* full path to ini file - UTF8 */
 extern WCHAR squeakIniNameW[];   /* full path to ini file - UTF16 */
 
 #ifdef UNICODE
-#define imageNameT imageNameW /* define the generic TCHAR* version */
-#define imagePath  imagePathW
-#define vmName vmNameW
-#define vmPath vmPathW
-#define squeakIniName squeakIniNameW
+# define imageNameT imageNameW /* define the generic TCHAR* version */
+# define imagePath  imagePathW
+# define vmName vmNameW
+# define vmPath vmPathW
+# define squeakIniName squeakIniNameW
 #else
-#define imageNameT imageName
-#define imagePath  imagePathA
-#define vmName vmNameA
-#define vmPath vmPathA
-#define squeakIniName squeakIniNameA
+# define imageNameT imageName
+# define imagePath  imagePathA
+# define vmName vmNameA
+# define vmPath vmPathA
+# define squeakIniName squeakIniNameA
 #endif
 
 #define __UNICODE_TEXT(x) L##x

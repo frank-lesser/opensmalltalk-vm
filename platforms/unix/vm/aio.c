@@ -81,6 +81,7 @@
 
 # if __sun__
   # include <sys/sockio.h>
+  # include <sys/file.h> /* FASYNC or ioctl FIOASYNC will be issued  */
   # define signal(a, b) sigset(a, b)
 # endif
 
@@ -166,16 +167,6 @@ handlerName(aioHandler h)
  * dynamic linker happens to run in a signal handler.
  */
 # if ITIMER_HEARTBEAT
-#	define USE_SIGALTSTACK 1
-# endif
-
-/* At least on macOS circa 10.13 it appears that if SIGIO is delivered in an
- * enilopmart jumping in to JIT code then the code zone can be corrupted.  We
- * do leave lots of headroom at the end of a stack page to ensure a hardware
- * interrupt can be delivered.  But a software signal may have more complex
- * constraints. As a workaround we use sigaltstack by default in the JIT.
- */
-# if COGVM
 #	define USE_SIGALTSTACK 1
 # endif
 
